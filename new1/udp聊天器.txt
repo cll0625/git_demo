@@ -1,0 +1,97 @@
+import socket
+
+
+def send_msg(udp_socket):
+    ipaddr = input("请输入要发送的ip地址：\n")
+    port = input("请输入接收方的端口号:\n")
+    content = input("请输入要发送的内容：\n")
+    udp_socket.sendto(content.encode(), (ipaddr, int(port)))
+
+
+def recv_msg(udp_socket):
+    recv_date, ip_port = udp_socket.recvfrom(1024)
+    recv_text = recv_date.decode()
+    print("接受到[%s]发送的信息：%s" % (str(ip_port), recv_text))
+
+
+def main():
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp_socket.bind(("", 8080))
+    while True:
+        print("1 发送信息")
+        print("2 接受信息")
+        print("3 退出系统")
+        sel_num = int(input("请输入选项：\n"))
+        if sel_num == 1:
+            send_msg(udp_socket)
+        elif sel_num == 2:
+            recv_msg(udp_socket)
+        elif sel_num == 3:
+            print("系统推出...")
+            break
+    udp_socket.close()
+
+
+if __name__ == '__main__':
+    main()
+
+
+'''''''''''tcp服务器增强
+import socket
+tcp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+tcp_server_socket.bind(("", 8080))
+tcp_server_socket.listen(128)
+while True:
+    new_client_socket, client_ip_port = tcp_server_socket.accept()
+    while True:
+        recv_data = new_client_socket.recv(1024)
+        if len(recv_data) != 0:
+            recv_text = recv_data.decode("GBK")
+            print("接收到【%s】的信息：%s" % (str(client_ip_port), recv_text))
+        else:
+            print("服务器已断开连接")
+            break
+    new_client_socket.close()
+tcp_server_socket.close()
+
+
+'''''''数据
+//客户端
+import socket
+tcp_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+tcp_client_socket.connect(("192.168.179.128", 8080))
+file_name = input("请输入下载的文件名：\n")
+tcp_client_socket.send(file_name.encode())
+with open("/home/linchen/桌面/" + file_name, "wb") as file:
+    while True:
+        file_data = tcp_client_socket.recv(1024)
+        if file_data:
+            file.write(file_data)
+        else:
+            break
+tcp_client_socket.close()
+//服务端
+mport socket
+tcp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+tcp_server_socket.bind(("", 8080))
+tcp_server_socket.listen(128)
+new_client_socket, ip_port = tcp_server_socket.accept()
+print("欢迎新客户端：", ip_port)
+recv_data = new_client_socket.recv(1024)
+file_name = recv_data.decode()
+print(file_name)
+try:
+    with open(file_name, "rb") as file:
+        while True:
+            file_data = file.read(1024)
+            if file_data:
+                new_client_socket.send(file_data)
+            else:
+                break
+except Exception as e:
+    print("文件%s下载失败！" % file_name)
+else:
+    print("文件下载成功！")
+
+new_client_socket.close()
+tcp_server_socket.close()
